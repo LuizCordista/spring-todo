@@ -7,6 +7,6 @@ public interface TasksService {
 
     Iterable<Task> findAll(User user);
     void newTask(String name, String description, User user);
-    void completeTask(String id);
-    void deleteTask(String id);
+    void toogleCompleteTask(String id, User user);
+    void deleteTask(String id, User user);
 }

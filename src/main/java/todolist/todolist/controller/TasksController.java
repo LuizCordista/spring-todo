@@ -8,6 +8,7 @@ import todolist.todolist.services.TasksService;
 
 import java.security.Principal;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api")
 public class TasksController {
@@ -33,12 +34,14 @@ public class TasksController {
     }
 
     @PutMapping("/tarefas/{id}/concluir")
-    public void completeTask(@PathVariable(value = "id") String id) {
-        tasksService.completeTask(id);
+    public void toogleCompleteTask(@PathVariable(value = "id") String id, Principal principal) {
+        User user = usersRepository.findByUsername(principal.getName());
+        tasksService.toogleCompleteTask(id, user);
     }
 
     @DeleteMapping("/tarefas/{id}")
-    public void deleteTask(@PathVariable(value = "id") String id) {
-        tasksService.deleteTask(id);
+    public void deleteTask(@PathVariable(value = "id") String id, Principal principal) {
+        User user = usersRepository.findByUsername(principal.getName());
+        tasksService.deleteTask(id, user);
     }
 }

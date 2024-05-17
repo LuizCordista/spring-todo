@@ -7,6 +7,7 @@ import todolist.todolist.entitites.User;
 import todolist.todolist.repositories.TasksRepository;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Service
 public class TasksServiceImpl implements TasksService {
@@ -33,15 +34,18 @@ public class TasksServiceImpl implements TasksService {
     }
 
     @Override
-    public void completeTask(String id) {
+    public void toogleCompleteTask(String id, User user) {
         Task task = tasksRepository.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
-        task.setCompleted(true);
-        tasksRepository.save(task);
+        if (Objects.equals(user.getUsername(), task.getUser().getUsername())) {
+            task.setCompleted(!task.isCompleted());
+            tasksRepository.save(task);
+        }
     }
 
     @Override
-    public void deleteTask(String id) {
+    public void deleteTask(String id , User user) {
         Task task = tasksRepository.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
-        tasksRepository.delete(task);
+        if (Objects.equals(user.getUsername(), task.getUser().getUsername())) {tasksRepository.delete(task);}
+
     }
 }
