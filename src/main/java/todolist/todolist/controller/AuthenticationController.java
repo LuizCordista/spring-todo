@@ -65,8 +65,8 @@ public class AuthenticationController {
     @GetMapping("/user")
     public ResponseEntity<String> getUser(@RequestHeader("Authorization") String token) {
         if (token != null) token = token.replace("Bearer ", "");
-        String user = tokenService.getUserByToken(token);
-        if (user == null) {
+        String user = tokenService.validateToken(token);
+        if (user.isEmpty()) {
            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido");
         }
         return ResponseEntity.ok(user);
