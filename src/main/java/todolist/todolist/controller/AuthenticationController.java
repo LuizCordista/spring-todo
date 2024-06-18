@@ -1,13 +1,17 @@
 package todolist.todolist.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import todolist.todolist.dtos.LoginResponseDTO;
+import todolist.todolist.dtos.ResponseMessageDTO;
 import todolist.todolist.dtos.UserDTO;
 import todolist.todolist.entitites.User;
 import todolist.todolist.infra.TokenService;
@@ -24,6 +28,8 @@ public class AuthenticationController {
     private TokenService tokenService;
 
     private final UsersRepository usersRepository;
+    @Autowired
+    private HttpServletResponse httpServletResponse;
 
     public AuthenticationController(UsersRepository usersRepository) {
         this.usersRepository = usersRepository;
@@ -41,14 +47,28 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody UserDTO data) {
-        if(this.usersRepository.findByUsername(data.getUsername()) != null) return ResponseEntity.badRequest().build();
-        if(this.usersRepository.findByEmail(data.getEmail()) != null) return ResponseEntity.badRequest().build();
+    public ResponseEntity<ResponseMessageDTO> register(@RequestBody UserDTO data) {
+        if(this.usersRepository.findByUsername(data.getUsername()) != null)  {
+            return ResponseEntity.badRequest().body(new ResponseMessageDTO("Usuario já existe"));
+        }
+        if(this.usersRepository.findByEmail(data.getEmail()) != null) {
+            return ResponseEntity.badRequest().body(new ResponseMessageDTO("Email já existe"));
+        }
 
         String encryptedPassword= new BCryptPasswordEncoder().encode(data.getPassword());
         User newUser = new User(data.getUsername(), data.getEmail(), encryptedPassword);
 
         this.usersRepository.save(newUser);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(new ResponseMessageDTO("Usuario registrado com sucesso"));
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<String> getUser(@RequestHeader("Authorization") String token) {
+        if (token != null) token = token.replace("Bearer ", "");
+        String user = tokenService.getUserByToken(token);
+        if (user == null) {
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido");
+        }
+        return ResponseEntity.ok(user);
     }
 }
